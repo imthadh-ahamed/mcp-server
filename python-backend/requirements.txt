@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+python-dotenv
+PyPDF2
+requests
+email-validator

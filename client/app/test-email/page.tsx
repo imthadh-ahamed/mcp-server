@@ -39,7 +39,7 @@ export default function TestEmailPage() {
             <h3 className="text-lg font-semibold text-blue-900 mb-3">API Endpoint</h3>
             <p className="text-blue-800 text-sm">This form sends a POST request to:</p>
             <code className="block mt-2 p-2 bg-blue-100 rounded text-xs text-blue-900">
-              {process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/email/send
+              {process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/email/send
             </code>
           </div>
         </div>

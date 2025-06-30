@@ -1,13 +1,15 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useRef, useEffect } from "react"
-import { Send, Bot, User } from "lucide-react"
+import { Send, Bot, User, AlertCircle } from "lucide-react"
 import { sendChatMessage } from "@/lib/api"
 import type { ChatMessage } from "@/lib/types"
 
-export default function ChatWindow() {
+interface ChatWindowProps {
+  resumeId?: string
+}
+
+export default function ChatWindow({ resumeId }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [inputMessage, setInputMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -23,7 +25,7 @@ export default function ChatWindow() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!inputMessage.trim() || isLoading) return
+    if (!inputMessage.trim() || isLoading || !resumeId) return
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -37,13 +39,13 @@ export default function ChatWindow() {
     setIsLoading(true)
 
     try {
-      const response = await sendChatMessage(inputMessage)
+      const response = await sendChatMessage(resumeId, inputMessage)
 
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: response.data?.message || "Sorry, I could not process your request.",
-        timestamp: response.data?.timestamp || new Date().toISOString(),
+        content: response.data?.answer || "Sorry, I could not process your request.",
+        timestamp: new Date().toISOString(),
       }
 
       setMessages((prev) => [...prev, aiMessage])
@@ -58,6 +60,18 @@ export default function ChatWindow() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (!resumeId) {
+    return (
+      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-8 text-center">
+        <AlertCircle size={48} className="mx-auto mb-4 text-yellow-500" />
+        <h2 className="text-xl font-semibold mb-2">No Resume Selected</h2>
+        <p className="text-gray-600">
+          Please upload a resume first to start chatting. You can do this from the Upload page.
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -88,9 +102,9 @@ export default function ChatWindow() {
                   }`}
                 >
                   {message.role === "user" ? (
-                    <User size={16} className="text-white" />
+                    <User size={16} className="text-white" aria-label="User" />
                   ) : (
-                    <Bot size={16} className="text-gray-600" />
+                    <Bot size={16} className="text-gray-600" aria-label="Assistant" />
                   )}
                 </div>
                 <div
@@ -110,19 +124,13 @@ export default function ChatWindow() {
           <div className="flex justify-start">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                <Bot size={16} className="text-gray-600" />
+                <Bot size={16} className="text-gray-600" aria-label="Assistant thinking..." />
               </div>
               <div className="bg-gray-100 px-4 py-2 rounded-lg">
                 <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div
-                    className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                    style={{ animationDelay: "0.1s" }}
-                  ></div>
-                  <div
-                    className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                    style={{ animationDelay: "0.2s" }}
-                  ></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-[bounce_1s_ease-in-out_infinite]" />
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-[bounce_1s_ease-in-out_infinite_0.1s]" />
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-[bounce_1s_ease-in-out_infinite_0.2s]" />
                 </div>
               </div>
             </div>
@@ -139,12 +147,14 @@ export default function ChatWindow() {
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             placeholder="Ask a question about your resume..."
+            aria-label="Chat input"
             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             disabled={isLoading}
           />
           <button
             type="submit"
             disabled={!inputMessage.trim() || isLoading}
+            aria-label="Send message"
             className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <Send size={16} />

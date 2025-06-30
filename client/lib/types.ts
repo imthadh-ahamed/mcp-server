@@ -1,35 +1,42 @@
 export interface ApiResponse<T = any> {
-  success: boolean
-  data?: T
-  error?: string
-  message?: string
+    data?: T
+    error?: string
 }
 
-export interface UploadResponse {
-  filename: string
-  size: number
-  uploadedAt: string
+export interface Resume {
+    id: string  // UUID from backend
+    text: string
+}
+
+export interface UploadResponse extends Resume {
+    // Extends the Resume type from our FastAPI backend
 }
 
 export interface ChatMessage {
-  id: string
-  role: "user" | "assistant"
-  content: string
-  timestamp: string
+    id: string
+    role: "user" | "assistant"
+    content: string
+    timestamp: string
+}
+
+export interface ChatRequest {
+    resume_id: string
+    question: string
 }
 
 export interface ChatResponse {
-  message: string
-  timestamp: string
+    answer: string
 }
 
-export interface EmailPayload {
-  to: string
-  subject: string
-  body: string
+export interface EmailRequest {
+    to: string
+    subject: string
+    body: string
 }
+
+// Rename EmailPayload to match our FastAPI model
+export type EmailPayload = EmailRequest
 
 export interface EmailResponse {
-  messageId: string
-  status: string
+    status: string
 }

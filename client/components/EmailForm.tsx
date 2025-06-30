@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { Mail, CheckCircle, AlertCircle } from "lucide-react"
+import { sendTestEmail } from "@/lib/api"
 
 export default function EmailForm() {
   const [formData, setFormData] = useState({
@@ -26,27 +27,13 @@ export default function EmailForm() {
     setStatus("idle")
 
     try {
-      const response = await fetch("/api/test-email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      })
-
-      const result = await response.json()
-
-      if (response.ok) {
-        setStatus("success")
-        setMessage("Email sent successfully!")
-        setFormData({ to: "", subject: "", body: "" })
-      } else {
-        setStatus("error")
-        setMessage(result.error || "Failed to send email")
-      }
+      await sendTestEmail(formData)
+      setStatus("success")
+      setMessage("Email sent successfully!")
+      setFormData({ to: "", subject: "", body: "" })
     } catch (error) {
       setStatus("error")
-      setMessage("Network error. Please try again.")
+      setMessage(error instanceof Error ? error.message : "Failed to send email")
     } finally {
       setIsLoading(false)
     }
@@ -111,17 +98,17 @@ export default function EmailForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full flex items-center justify-center space-x-2 bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full flex items-center justify-center space-x-2 bg-gray-900 text-white py-2.5 px-4 rounded-md hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm hover:shadow-md"
         >
           {isLoading ? (
             <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              <span>Sending...</span>
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+              <span className="text-white font-medium">Sending...</span>
             </>
           ) : (
             <>
-              <Mail size={16} />
-              <span>Send Email</span>
+              <Mail size={16} className="text-white" />
+              <span className="text-white font-medium">Send Email</span>
             </>
           )}
         </button>

@@ -1,13 +1,12 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useRef } from "react"
 import { Upload, FileText, CheckCircle, AlertCircle } from "lucide-react"
 import { uploadResume } from "@/lib/api"
+import type { Resume } from "@/lib/types"
 
 interface UploadFormProps {
-  onUploadSuccess?: () => void
+  onUploadSuccess?: (resume: Resume) => void
 }
 
 export default function UploadForm({ onUploadSuccess }: UploadFormProps) {
@@ -40,9 +39,13 @@ export default function UploadForm({ onUploadSuccess }: UploadFormProps) {
 
     try {
       const response = await uploadResume(file)
-      setUploadStatus("success")
-      setMessage("Resume uploaded successfully!")
-      onUploadSuccess?.()
+      if (response.data) {
+        setUploadStatus("success")
+        setMessage("Resume uploaded successfully!")
+        onUploadSuccess?.(response.data)
+      } else {
+        throw new Error("Upload response missing data")
+      }
     } catch (error) {
       setUploadStatus("error")
       setMessage(error instanceof Error ? error.message : "Upload failed")
@@ -66,12 +69,15 @@ export default function UploadForm({ onUploadSuccess }: UploadFormProps) {
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Select Resume File</label>
+          <label htmlFor="resume-upload" className="block text-sm font-medium text-gray-700 mb-2">Select Resume File</label>
           <input
+            id="resume-upload"
             ref={fileInputRef}
             type="file"
             accept=".pdf,.json"
             onChange={handleFileSelect}
+            aria-label="Upload resume file"
+            title="Choose a PDF or JSON file"
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
           />
         </div>
@@ -87,17 +93,17 @@ export default function UploadForm({ onUploadSuccess }: UploadFormProps) {
         <button
           onClick={handleUpload}
           disabled={!file || uploading}
-          className="w-full flex items-center justify-center space-x-2 bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full flex items-center justify-center space-x-2 bg-gray-900 py-2.5 px-4 rounded-md hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm hover:shadow-md"
         >
           {uploading ? (
             <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              <span>Uploading...</span>
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+              <span className="text-white font-medium">Uploading...</span>
             </>
           ) : (
             <>
-              <Upload size={16} />
-              <span>Upload Resume</span>
+              <Upload size={16} className="text-white" />
+              <span className="text-white font-medium">Upload Resume</span>
             </>
           )}
         </button>
@@ -114,7 +120,7 @@ export default function UploadForm({ onUploadSuccess }: UploadFormProps) {
         )}
 
         {uploadStatus === "success" && (
-          <button onClick={resetForm} className="w-full text-primary-600 hover:text-primary-700 text-sm font-medium">
+          <button onClick={resetForm} className="w-full text-gray-600 hover:text-gray-900 text-sm font-medium">
             Upload Another Resume
           </button>
         )}
